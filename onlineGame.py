@@ -7,7 +7,6 @@ import math
 import time
 from tank import Tank
 from gameView import GameView
-import queue
 
 class OnlineGame:
     def __init__(self, bots_number, rounds_number, socket, host="127.0.0.1", port=12345):
@@ -16,7 +15,11 @@ class OnlineGame:
         self.rounds = rounds_number
         self.socket = socket
         self.gameView = None
-        self.action_queue = queue.Queue()
+        self.action_list = {"w": False,
+                            "a": False,
+                            "s": False,
+                            "d": False,
+                            "shoot": False}
 
     def update(self):
         pass
@@ -29,20 +32,14 @@ class OnlineGame:
                 if event.type == pygame.QUIT:
                     running = False
                     return False
-                if event.type == pygame.KEYDOWN:
-                    if event.key == pygame.K_SPACE:
-                        self.action_queue.put(4)
-            keys = pygame.key.get_pressed()
-            if keys[pygame.K_w]:
-                self.action_queue.put(0)
-            if keys[pygame.K_a]:
-                self.action_queue.put(1)
-            if keys[pygame.K_s]:
-                self.action_queue.put(2)
-            if keys[pygame.K_d]:
-                self.action_queue.put(3)
 
-                
+                    
+            keys = pygame.key.get_pressed()
+            self.action_list["w"] = keys[pygame.K_w]
+            self.action_list["a"] = keys[pygame.K_a]
+            self.action_list["s"] = keys[pygame.K_s]
+            self.action_list["d"] = keys[pygame.K_d]
+            self.action_list["shoot"] = keys[pygame.K_SPACE]                
             
             self.gameView.draw_game()
         
@@ -63,26 +60,19 @@ class OnlineGame:
                 continue
             except Exception as e:
                 print(e)
-            time.sleep(0.01)
+            # time.sleep(0.01)
     
     def broadcasting(self):
         while True:
-            msg = struct.pack("B", 7)
-            
-            data = struct.pack("B", self.action_queue.get()) 
-            i = 1 
-            while not self.action_queue.empty() and i < 50:
+            if any(self.action_list):
+                msg = struct.pack("BBBBBB", 7, self.action_list["w"], self.action_list["a"],
+                                self.action_list["s"], self.action_list["d"],
+                                self.action_list["shoot"])
                 try:
-                    data += struct.pack("B", self.action_queue.get_nowait())
-                    i += 1
-                except queue.Empty:
-                    break
-            msg += struct.pack("B", i)
-            msg += data
-            try:
-                self.socket.sendto(msg, (self.host, self.port))
-            except Exception as e:
-                print(e)
+                    self.socket.sendto(msg, (self.host, self.port))
+                except Exception as e:
+                    print(e)
+            time.sleep(0.01)
     
 
 

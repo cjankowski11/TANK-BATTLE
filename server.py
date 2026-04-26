@@ -5,6 +5,7 @@ import struct
 from gameEngine import GameEngine
 from dotenv import load_dotenv
 import os
+from player import Player, BotPlayer
 load_dotenv()
 server_ip = os.getenv("IP")
 port = os.getenv("PORT")
@@ -21,12 +22,12 @@ class Server:
         self.max_players = 4
         self.bots_number = 0
         self.rounds_number = 5
-        self.players_addr_name = {}
         self.socket = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
         self.socket.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, True)
         self.socket.bind((self.host, self.port))
         self.socket.settimeout(1)
         self.lock = threading.Lock()
+        self.players = {} # zrobic moze klase graczy gdzie beda te akcje i moze ilosc punktow i to czy gracz zyje igig
 
     def handle_data(self, data, addr):
         try:
@@ -72,14 +73,8 @@ class Server:
                     
                     elif msg_type == 7:
                         name = self.get_player_name(addr)
-                        offset = 1     
-                        size = struct.unpack("B", data[offset:offset+1])[0]
-                        # print(size)
-                        offset += 1
-                        for _ in range(size):
-                            instruction = data[offset]
-                            self.gameEngine.update_player(name, instruction)
-                            offset += 1
+                        w, a, s, d, shoot = struct.unpack("BBBBB", data[1:])
+                        self.players[name].update(w, a, s, d, shoot)
                         
                         
         except Exception as e:
@@ -102,34 +97,45 @@ class Server:
     def broadcasting(self):
         game_initialized = False
         ticks_per_sec = 60
+        tick_duration = 1.0 / ticks_per_sec
 
         self.thread_count += 1
-
+        next_tick = time.time()
+        
         while not self.kill:
-            next_tick = time.time()
+            now = time.time()
+            
             with self.lock:
                 active_game = self.start_game
                 current_players = list(self.menu_players.keys())
-            now = time.time()
-            # print(active_game)
+
             if not active_game:
                 self.resending_active_players()
-            else:
-                if not game_initialized:   #make sure that client gets start message before data
-                    self.initialize_game() # imo client sends info that he got start info
-                    for addr in current_players:      #nvm najlepiej po prostu sygnal kilka razy wyslac bo czekanie moze byc problematyczne jak kogos wyjebie
-                        self.socket.sendto(struct.pack("B", 1), addr)
-                    game_initialized = True
-                    time.sleep(0.1)
-                    for _ in range(5):
-                        self.send_starting_info()
-                        time.sleep(0.5)
+                time.sleep(0.1)
 
-                if now >= next_tick:
-                    self.update_game_logic()  
-                    self.broadcast_game_state() 
-                    next_tick += 1.0 / ticks_per_sec
-            time.sleep(0.1)
+                next_tick = time.time() 
+                continue
+
+            if not game_initialized:   
+                self.initialize_game() 
+                for addr in current_players:      
+                    self.socket.sendto(struct.pack("B", 1), addr)
+                game_initialized = True
+                
+                time.sleep(0.1)
+                for _ in range(5):
+                    self.send_starting_info()
+                    time.sleep(0.5)
+
+                next_tick = time.time() + tick_duration 
+
+            if now >= next_tick:
+                self.update_game_logic()  
+                self.broadcast_game_state() 
+                next_tick += tick_duration
+            else:
+
+                time.sleep(0.001)
         self.thread_count -= 1
 
     def await_kill(self):
@@ -191,16 +197,29 @@ class Server:
     def initialize_game(self): 
         with self.lock:
             names = [value["name"] for value in self.menu_players.values()]
+            for name in names:
+                self.players[name] = Player(name)
             for i in range(self.bots_number):
-                names.append(f"BOT{i}")
-            for player, value in self.menu_players.items(): # is it needed? ig not
-                self.players_addr_name[player] = value["name"]
+                bot_name = f"BOT{i}"
+                self.players[bot_name] = BotPlayer(bot_name)
+                names.append(bot_name)
+
         self.gameEngine = GameEngine(names, "map1.txt")
                 
 
 
     def update_game_logic(self):
-        pass
+        for name, player in self.players.items():
+            if player.is_bot():
+                player.update()
+            instructions = player.get_instructions()
+
+            self.gameEngine.update_player(name, instructions["w"], 
+                                          instructions["a"],
+                                          instructions["s"],
+                                          instructions["d"],
+                                          instructions["shoot"])
+        
 
     def broadcast_game_state(self):
         players = self.gameEngine.get_players(binary=True)

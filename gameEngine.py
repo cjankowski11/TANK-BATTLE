@@ -16,31 +16,34 @@ class GameEngine:
             start_pos = self.get_start_pos(800, 450)
             self.players[name] = Tank(start_pos, random.randint(0, 360), 15)
 
-    def update_player(self, player, sign):
+    def update_player(self, player, w, a, s, d, shoot):
         old_pos = self.players[player].position
         old_angle = self.players[player].angle
         tank = self.players[player]
-        if sign == 0:
+        if w:
             rad = math.radians(tank.angle)
-            tank.position.x -= math.sin(rad) * 0.05
-            tank.position.y -= math.cos(rad) * 0.05
-            #if not does_collide
-        elif sign == 1:
-            tank.angle += 0.05
+            tank.position.x -= math.sin(rad) * 0.5
+            tank.position.y -= math.cos(rad) * 0.5
+            
+        if a:
+            tank.angle += 0.7
             if tank.angle > 360:
                 tank.angle -= 360
-        elif sign == 2:
+        if s:
             rad = math.radians(tank.angle)
-            tank.position.x += math.sin(rad) * 0.05
-            tank.position.y += math.cos(rad) * 0.05
-        elif sign == 3:
-            tank.angle -= 0.05
+            tank.position.x += math.sin(rad) * 0.5
+            tank.position.y += math.cos(rad) * 0.5
+        if d:
+            tank.angle -= 0.7
             if tank.angle < 0:
                 tank.angle += 360
         
-        elif sign == 4:
-            print("SHOOT")
+        if shoot:
+            pass
 
+        # if self.check_collision(tank):
+        #     tank.position = old_pos
+        #     tank.angle = old_angle
 
     def get_players(self, binary=False):
         if binary:
@@ -66,5 +69,8 @@ class GameEngine:
         y = random.randint(0, screen_h - 50)
         return pygame.Vector2(x, y)
     
-    def check_collision(self):
-        pass
+    def check_collision(self, tank):
+        for wall in self.walls:
+            if wall.colliderect(tank):
+                return True
+        return False
