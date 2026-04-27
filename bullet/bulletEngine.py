@@ -1,0 +1,19 @@
+from bullet.bullet import Bullet
+
+
+class BulletEngine(Bullet):
+    def __init__(self, position, angle, ticks_per_sec):
+        super().__init__(position)
+        self.ticks_per_sec = ticks_per_sec
+        self.angle = angle
+        self.existence_time = 0
+        self.logevity = 10 * ticks_per_sec
+        self.exists = True
+
+    def update_exst_time(self):
+        self.existence_time += 1
+        if self.existence_time >= self.logevity:
+            self.exists = False
+
+    def is_existing(self):
+        return self.exists

@@ -117,7 +117,7 @@ class Server:
                 continue
 
             if not game_initialized:   
-                self.initialize_game() 
+                self.initialize_game(ticks_per_sec) 
                 for addr in current_players:      
                     self.socket.sendto(struct.pack("B", 1), addr)
                 game_initialized = True
@@ -194,7 +194,7 @@ class Server:
             except Exception as e:
                 print(e)
             
-    def initialize_game(self): 
+    def initialize_game(self, tps): 
         with self.lock:
             names = [value["name"] for value in self.menu_players.values()]
             for name in names:
@@ -204,7 +204,7 @@ class Server:
                 self.players[bot_name] = BotPlayer(bot_name)
                 names.append(bot_name)
 
-        self.gameEngine = GameEngine(names, "map1.txt")
+        self.gameEngine = GameEngine(names, "map1.txt", tps)
                 
 
 
@@ -213,17 +213,19 @@ class Server:
             if player.is_bot():
                 player.update()
             instructions = player.get_instructions()
-
+            self.gameEngine.update_bullets()
             self.gameEngine.update_player(name, instructions["w"], 
                                           instructions["a"],
                                           instructions["s"],
                                           instructions["d"],
                                           instructions["shoot"])
+            
         
 
     def broadcast_game_state(self):
         players = self.gameEngine.get_players(binary=True)
-        msg = struct.pack("B", 3) + players
+        bullets = self.gameEngine.get_bullets(binary=True)
+        msg = struct.pack("B", 3) + players + bullets
         # print(msg)
         with self.lock:
             addrs = self.get_menu_players_addrs()

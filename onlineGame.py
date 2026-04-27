@@ -5,7 +5,6 @@ import pygame
 import random
 import math
 import time
-from tank import Tank
 from gameView import GameView
 
 class OnlineGame:
@@ -52,7 +51,6 @@ class OnlineGame:
         while True:
             try:
                 msg, _ = self.socket.recvfrom(2048)
-                
                 number = msg[0]
                 actions[number](msg)
 
@@ -92,15 +90,15 @@ class OnlineGame:
             offset += 8
         number_of_players = msg[offset]
         offset += 1
-        print(number_of_players)
+       
         for _ in range(number_of_players):
             name = struct.unpack("20s", msg[offset:offset+20])
-            print(name)
             offset += 20
             x, y, angle, bullets = struct.unpack("fffB", msg[offset:offset+13])
-            print(x, y, angle)
             offset += 13
-            players[name] = Tank(pygame.Vector2(x, y), angle, bullets)
+            
+            players[name] = (x, y, angle, bullets)
+
         self.gameView.update_walls(walls)
         self.gameView.initialize_players(players)
     
@@ -113,6 +111,16 @@ class OnlineGame:
             x, y, angle, bullets = struct.unpack("fffB", msg[offset:offset+13])
             offset += 13
             self.gameView.update_player(name, x, y, angle, bullets)
+        number_of_bullets = msg[offset]
+
+        offset += 1
+        bullets = []
+        for _ in range(number_of_bullets):
+            x, y, time_of_existence = struct.unpack("ffH", msg[offset:offset+10])
+            offset += 10
+            bullets.append((x, y, time_of_existence))
+        self.gameView.update_bullets(bullets)
+            
 
 
 

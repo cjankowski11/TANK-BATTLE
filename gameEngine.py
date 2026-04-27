@@ -1,11 +1,12 @@
 import pygame
 import random
-from tank import Tank
+from tank.tankEngine import TankEngine
 import struct
 import math
 
 class GameEngine:
-    def __init__(self, players_names, game_map):
+    def __init__(self, players_names, game_map, ticks_per_sec):
+        self.ticks_per_sec = ticks_per_sec
         self.walls = []
         with open(game_map, "r") as f:
             for line in f:
@@ -14,43 +15,75 @@ class GameEngine:
                 self.players = {}
         for name in players_names:
             start_pos = self.get_start_pos(800, 450)
-            self.players[name] = Tank(start_pos, random.randint(0, 360), 15)
+            self.players[name] = TankEngine(start_pos, random.randint(0, 360), 10, ticks_per_sec)
+        self.bullets = []
 
     def update_player(self, player, w, a, s, d, shoot):
-        old_pos = self.players[player].position
-        old_angle = self.players[player].angle
         tank = self.players[player]
-        if w:
-            rad = math.radians(tank.angle)
-            tank.position.x -= math.sin(rad) * 0.5
-            tank.position.y -= math.cos(rad) * 0.5
-            
-        if a:
-            tank.angle += 0.7
-            if tank.angle > 360:
-                tank.angle -= 360
-        if s:
-            rad = math.radians(tank.angle)
-            tank.position.x += math.sin(rad) * 0.5
-            tank.position.y += math.cos(rad) * 0.5
-        if d:
-            tank.angle -= 0.7
-            if tank.angle < 0:
-                tank.angle += 360
-        
-        if shoot:
-            pass
+        old_angle = tank.angle
+        old_pos = tank.position.copy()
 
-        # if self.check_collision(tank):
-        #     tank.position = old_pos
-        #     tank.angle = old_angle
+        tank.update_reload_cooldown()
+        tank.update_shoot_cooldown()
+
+        if tank.is_able_to_reload():
+            tank.reload_bullet()
+        if a:
+            tank.angle += 2
+        if d:
+            tank.angle -= 2
+
+        tank.angle %= 360
+
+        if self.check_collision(tank):
+            tank.angle = old_angle 
+
+        move_x = 0
+        move_y = 0
+        rad = math.radians(tank.angle)
+
+        if w:
+            move_x -= math.sin(rad) * 1
+            move_y -= math.cos(rad) * 1
+        if s:
+            move_x += math.sin(rad) * 1
+            move_y += math.cos(rad) * 1
+
+        tank.position.x += move_x
+        if self.check_collision(tank):
+            tank.position.x = old_pos.x 
+
+        tank.position.y += move_y
+        if self.check_collision(tank):
+            tank.position.y = old_pos.y 
+
+        if shoot and tank.is_able_to_shoot():
+            bullet = tank.shoot()
+            self.bullets.append(bullet)
+
+    def update_bullets(self):
+        bullets_to_remove = []
+        for bullet in self.bullets:
+            bullet.update_exst_time()
+            if not bullet.is_existing():
+                bullets_to_remove.append(bullet)
+        for bullet in bullets_to_remove:
+            self.bullets.remove(bullet)
+        
+        for bullet in self.bullets:
+            self.bullet_collision_with_walls(bullet)
+
+            rad = math.radians(bullet.angle)
+            bullet.position.x -= math.sin(rad) * 1.5
+            bullet.position.y -= math.cos(rad) * 1.5
+
 
     def get_players(self, binary=False):
         if binary:
             buffor = struct.pack("B", len(self.players))
             for name, tank in self.players.items():
                 buffor += struct.pack("20s", name.encode())
-                buffor += struct.pack("fffB", tank.position.x, tank.position.y, tank.angle, tank.bullets)
+                buffor += struct.pack("fffB", tank.position.x, tank.position.y, tank.angle, tank.bullets_left)
             return buffor
         return self.players
 
@@ -63,14 +96,28 @@ class GameEngine:
         return self.walls
     
     def get_start_pos(self, screen_w, screen_h):
-        #tank = pygame.transform.scale_by(pygame.image.load("graphics/tank_1/tank_1.png").convert_alpha(), 4)
         
         x = random.randint(0, screen_w - 50)
         y = random.randint(0, screen_h - 50)
         return pygame.Vector2(x, y)
     
+    def get_bullets(self, binary=False):
+        if binary:
+            buffor = struct.pack("B", len(self.bullets))
+            for bullet in self.bullets:
+                buffor += struct.pack("ffH", bullet.position.x,
+                                      bullet.position.y, bullet.existence_time)
+            return buffor
+        return self.bullets
+    
     def check_collision(self, tank):
+        tank_rect = pygame.Rect(0, 0, 20, 20)
+        tank_rect.center = (int(tank.position.x), int(tank.position.y))
+
         for wall in self.walls:
-            if wall.colliderect(tank):
+            if wall.colliderect(tank_rect):
                 return True
         return False
+    
+    def bullet_collision_with_walls(self, bullet):
+        pass
