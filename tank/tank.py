@@ -8,3 +8,6 @@ class Tank:
         self.angle = angle
         self.bullets_left = bullets
         self.alive = True
+    
+    def is_alive(self):
+        return self.alive

@@ -18,10 +18,22 @@ class GameEngine:
             self.players[name] = TankEngine(start_pos, random.randint(0, 360), 10, ticks_per_sec)
         self.bullets = []
 
+    def is_finished(self):
+        alive_count = 0
+        for tank in self.players.values():
+            if tank.is_alive():
+                alive_count += 1
+        return True if alive_count < 2 else False
+
     def update_player(self, player, w, a, s, d, shoot):
         tank = self.players[player]
+        if not tank.is_alive():
+            return False
         old_angle = tank.angle
         old_pos = tank.position.copy()
+
+        if self.check_tank_bullets_collision(tank):
+            tank.alive = False
 
         tank.update_reload_cooldown()
         tank.update_shoot_cooldown()
@@ -65,13 +77,12 @@ class GameEngine:
         bullets_to_remove = []
         for bullet in self.bullets:
             bullet.update_exst_time()
-            if not bullet.is_existing():
+            if not bullet.is_existing() or self.check_bullet_walls_collision(bullet):
                 bullets_to_remove.append(bullet)
         for bullet in bullets_to_remove:
             self.bullets.remove(bullet)
         
         for bullet in self.bullets:
-            self.bullet_collision_with_walls(bullet)
 
             rad = math.radians(bullet.angle)
             bullet.position.x -= math.sin(rad) * 1.5
@@ -110,8 +121,8 @@ class GameEngine:
             return buffor
         return self.bullets
     
-    def check_collision(self, tank):
-        tank_rect = pygame.Rect(0, 0, 20, 20)
+    def check_collision(self, tank):          # there is for sure a better way to write it than
+        tank_rect = pygame.Rect(0, 0, 20, 20)   # mulitiplicate function for every collisoin
         tank_rect.center = (int(tank.position.x), int(tank.position.y))
 
         for wall in self.walls:
@@ -119,5 +130,21 @@ class GameEngine:
                 return True
         return False
     
-    def bullet_collision_with_walls(self, bullet):
-        pass
+    def check_bullet_walls_collision(self, bullet):
+        bullet_rect = pygame.Rect(0, 0, 5, 5)
+        bullet_rect.center = (int(bullet.position.x), int(bullet.position.y))
+        for wall in self.walls:
+            if wall.colliderect(bullet_rect):
+                return True
+        return False
+    
+    def check_tank_bullets_collision(self, tank):
+        tank_rect = pygame.Rect(0, 0, 20, 20)
+        tank_rect.center = (int(tank.position.x), int(tank.position.y))
+        for bullet in self.bullets:
+            bullet_rect = pygame.Rect(0, 0, 5, 5)
+            bullet_rect.center = (int(bullet.position.x), int(bullet.position.y))
+            if tank_rect.colliderect(bullet_rect):
+                return True
+        return False
+

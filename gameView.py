@@ -27,11 +27,12 @@ class GameView:
             bullet.draw(self.screen)
         pygame.display.update()
     
-    def update_player(self, name, x, y, angle, bullets):
+    def update_player(self, name, x, y, angle, bullets, alive):
         self.players[name].position.x = x
         self.players[name].position.y = y
         self.players[name].angle = angle
         self.players[name].bullets = bullets
+        self.players[name].alive = alive
 
     def update_walls(self, walls):
         self.walls = walls

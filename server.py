@@ -98,7 +98,7 @@ class Server:
         game_initialized = False
         ticks_per_sec = 60
         tick_duration = 1.0 / ticks_per_sec
-
+        current_round = 0
         self.thread_count += 1
         next_tick = time.time()
         
@@ -114,10 +114,15 @@ class Server:
                 time.sleep(0.1)
 
                 next_tick = time.time() 
+                current_round = 0
                 continue
 
             if not game_initialized:   
-                self.initialize_game(ticks_per_sec) 
+                self.initialize_game(ticks_per_sec)
+                current_round += 1
+                if current_round > self.rounds_number:
+                    self.start_game = False
+                    continue
                 for addr in current_players:      
                     self.socket.sendto(struct.pack("B", 1), addr)
                 game_initialized = True
@@ -130,6 +135,8 @@ class Server:
                 next_tick = time.time() + tick_duration 
 
             if now >= next_tick:
+                if self.gameEngine.is_finished():
+                    game_initialized = False
                 self.update_game_logic()  
                 self.broadcast_game_state() 
                 next_tick += tick_duration
@@ -148,7 +155,7 @@ class Server:
         threading.Thread(target=self.listen_loop).start()
         threading.Thread(target=self.broadcasting).start()
         try:
-            while True:
+            while not self.kill:
                 time.sleep(0.05)
                 
         except KeyboardInterrupt:
@@ -209,11 +216,12 @@ class Server:
 
 
     def update_game_logic(self):
+        self.gameEngine.update_bullets()
         for name, player in self.players.items():
             if player.is_bot():
                 player.update()
             instructions = player.get_instructions()
-            self.gameEngine.update_bullets()
+            
             self.gameEngine.update_player(name, instructions["w"], 
                                           instructions["a"],
                                           instructions["s"],

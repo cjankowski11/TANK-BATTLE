@@ -108,9 +108,9 @@ class OnlineGame:
         for _ in range(number_of_players):
             name = struct.unpack("20s", msg[offset:offset+20])
             offset += 20
-            x, y, angle, bullets = struct.unpack("fffB", msg[offset:offset+13])
+            x, y, angle, bullets= struct.unpack("fffB", msg[offset:offset+13])
             offset += 13
-            self.gameView.update_player(name, x, y, angle, bullets)
+            self.gameView.update_player(name, x, y, angle, bullets, True)
         number_of_bullets = msg[offset]
 
         offset += 1
