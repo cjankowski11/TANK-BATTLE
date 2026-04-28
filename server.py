@@ -137,9 +137,12 @@ class Server:
             if now >= next_tick:
                 if self.gameEngine.is_finished():
                     game_initialized = False
+                    
                     if current_round == self.rounds_number:
                         for addr in current_players:
                             self.socket.sendto(struct.pack("B", 4), addr)
+                        self.menu_players = {}
+                        self.players = {}
                 self.update_game_logic()  
                 self.broadcast_game_state() 
                 next_tick += tick_duration

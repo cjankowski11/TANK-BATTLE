@@ -51,7 +51,7 @@ class OnlineGame:
             3: self.update_game,
             4: self.game_finished
         }
-        while True:
+        while self.running:
             try:
                 msg, _ = self.socket.recvfrom(2048)
                 number = msg[0]
@@ -64,7 +64,7 @@ class OnlineGame:
             # time.sleep(0.01)
     
     def broadcasting(self):
-        while True:
+        while self.running:
             if any(self.action_list):
                 msg = struct.pack("BBBBBB", 7, self.action_list["w"], self.action_list["a"],
                                 self.action_list["s"], self.action_list["d"],
