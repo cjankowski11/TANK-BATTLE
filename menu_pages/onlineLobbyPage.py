@@ -1,5 +1,5 @@
-from button import Button
-from text import Text
+from menu_utilities.button import Button
+from menu_utilities.text import Text
 import socket
 import struct
 import threading

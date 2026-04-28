@@ -1,10 +1,10 @@
 import pygame
 from menuInfo import MenuInfo
-from menuPage import MenuPage
-from playPage import PlayPage
-from settingsPage import SettingsPage
-from localLobbyPage import LocalLobbyPage
-from onlineLobbyPage import OnlineLobbyPage
+from menu_pages.menuPage import MenuPage
+from menu_pages.playPage import PlayPage
+from menu_pages.settingsPage import SettingsPage
+from menu_pages.localLobbyPage import LocalLobbyPage
+from menu_pages.onlineLobbyPage import OnlineLobbyPage
 import os
 from dotenv import load_dotenv
 

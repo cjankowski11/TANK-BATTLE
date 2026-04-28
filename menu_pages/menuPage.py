@@ -1,4 +1,4 @@
-from button import Button
+from menu_utilities.button import Button
 
 
 class MenuPage:

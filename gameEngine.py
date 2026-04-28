@@ -4,18 +4,22 @@ from tank.tankEngine import TankEngine
 import struct
 import math
 
+
 class GameEngine:
     def __init__(self, players_names, game_map, ticks_per_sec):
         self.ticks_per_sec = ticks_per_sec
         self.walls = []
+        self.screen_width = 800
+        self.screen_height = 450
+        self.tank_amunition = 10
         with open(game_map, "r") as f:
             for line in f:
                 wall = line.strip().split(",")
                 self.walls.append(pygame.Rect(int(wall[0]), int(wall[1]), int(wall[2]), int(wall[3])))
                 self.players = {}
         for name in players_names:
-            start_pos = self.get_start_pos(800, 450)
-            self.players[name] = TankEngine(start_pos, random.randint(0, 360), 10, ticks_per_sec)
+            start_pos = self.get_start_pos(self.screen_width, self.screen_height)
+            self.players[name] = TankEngine(start_pos, random.randint(0, 360), self.tank_amunition, ticks_per_sec)
         self.bullets = []
 
     def is_finished(self):
@@ -106,7 +110,7 @@ class GameEngine:
             return buffor
         return self.walls
     
-    def get_start_pos(self, screen_w, screen_h):
+    def get_start_pos(self, screen_w, screen_h):  # TO DO: prevent from spawning in walls
         
         x = random.randint(0, screen_w - 50)
         y = random.randint(0, screen_h - 50)

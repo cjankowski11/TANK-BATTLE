@@ -137,6 +137,9 @@ class Server:
             if now >= next_tick:
                 if self.gameEngine.is_finished():
                     game_initialized = False
+                    if current_round == self.rounds_number:
+                        for addr in current_players:
+                            self.socket.sendto(struct.pack("B", 4), addr)
                 self.update_game_logic()  
                 self.broadcast_game_state() 
                 next_tick += tick_duration
@@ -211,7 +214,7 @@ class Server:
                 self.players[bot_name] = BotPlayer(bot_name)
                 names.append(bot_name)
 
-        self.gameEngine = GameEngine(names, "map1.txt", tps)
+        self.gameEngine = GameEngine(names, "maps/map1.txt", tps)
                 
 
 

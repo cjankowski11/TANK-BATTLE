@@ -14,6 +14,7 @@ class OnlineGame:
         self.rounds = rounds_number
         self.socket = socket
         self.gameView = None
+        self.running = True
         self.action_list = {"w": False,
                             "a": False,
                             "s": False,
@@ -25,11 +26,12 @@ class OnlineGame:
     
     def run(self):
         self.gameView = GameView()
-        running = True
-        while running:
+
+        while self.running:
+
             for event in pygame.event.get():
                 if event.type == pygame.QUIT:
-                    running = False
+                    self.running = False
                     return False
 
                     
@@ -46,7 +48,8 @@ class OnlineGame:
     def listener(self):
         actions = {
             2: self.initialize_map,
-            3: self.update_game
+            3: self.update_game,
+            4: self.game_finished
         }
         while True:
             try:
@@ -120,7 +123,12 @@ class OnlineGame:
             offset += 10
             bullets.append((x, y, time_of_existence))
         self.gameView.update_bullets(bullets)
-            
+    
+    def game_finished(self, msg):
+        self.running = False
+
+    def is_game_finished(self):
+        return not self.running
 
 
 
