@@ -10,9 +10,9 @@ class GameView:
         self.players = {}
         self.tank_images = [
             pygame.transform.scale_by(pygame.image.load("graphics/tank_1/tank_9x9.png").convert_alpha(), 4),
-            pygame.transform.scale_by(pygame.image.load("graphics/tank_1/tank_1.png").convert_alpha(), 4),
-            pygame.transform.scale_by(pygame.image.load("graphics/tank_1/tank_1.png").convert_alpha(), 4),
-            pygame.transform.scale_by(pygame.image.load("graphics/tank_1/tank_1.png").convert_alpha(), 4)
+            pygame.transform.scale_by(pygame.image.load("graphics/tank_2/tank_2_9x9.png").convert_alpha(), 4),
+            pygame.transform.scale_by(pygame.image.load("graphics/tank_3/tank_3_9x9.png").convert_alpha(), 4),
+            pygame.transform.scale_by(pygame.image.load("graphics/tank_4/tank_4_9x9.png").convert_alpha(), 4)
         ]
         self.bullet_images = [pygame.transform.scale_by(pygame.image.load("graphics/bullet.png").convert_alpha(), 4)]
         self.bullets = []
@@ -23,7 +23,6 @@ class GameView:
         for wall in self.walls:
             pygame.draw.rect(self.screen, "black", wall)
         for tank in self.players.values():
-            # print(tank.position)
             tank.draw(self.screen)
         for bullet in self.bullets:
             bullet.draw(self.screen)

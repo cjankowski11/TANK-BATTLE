@@ -63,6 +63,7 @@ class Server:
                         self.start_game = (bool(self.menu_players) and
                                            all(p["ready"]
                                            for p in self.menu_players.values()))
+                        self.initialize_players()
                     elif msg_type == 5:
                         if self.rounds_number < 20:
                             self.rounds_number += 1
@@ -119,6 +120,7 @@ class Server:
 
             if not game_initialized:   
                 self.initialize_game(ticks_per_sec)
+                self.update_bot_walls()
                 current_round += 1
                 if current_round > self.rounds_number:
                     self.start_game = False
@@ -137,6 +139,10 @@ class Server:
             if now >= next_tick:
                 if self.gameEngine.is_finished():
                     game_initialized = False
+                    winner = self.gameEngine.get_winner()
+                    self.players[winner].add_point()
+                    for player, values in self.players.items():
+                        print(f"player {player} has {values.points} points")
                     
                     if current_round == self.rounds_number:
                         for addr in current_players:
@@ -209,22 +215,30 @@ class Server:
             
     def initialize_game(self, tps): 
         with self.lock:
-            names = [value["name"] for value in self.menu_players.values()]
-            for name in names:
-                self.players[name] = Player(name)
-            for i in range(self.bots_number):
-                bot_name = f"BOT{i}"
-                self.players[bot_name] = BotPlayer(bot_name)
-                names.append(bot_name)
+            names = []
+            for name, player in self.players.items():
+                names.append(name)
+                player.alive = True
 
         self.gameEngine = GameEngine(names, "maps/map1.txt", tps)
                 
+    def initialize_players(self):
 
+        for value in self.menu_players.values():
+            name = value["name"]
+            self.players[name] = Player(name)
+        for i in range(self.bots_number):
+            bot_name = f"BOT{i}"
+            self.players[bot_name] = BotPlayer(bot_name)
 
     def update_game_logic(self):
         self.gameEngine.update_bullets()
+        bullets_info = self.gameEngine.get_bullets()
+        players_info = self.gameEngine.get_players()
         for name, player in self.players.items():
             if player.is_bot():
+                player.update_bullets(bullets_info)
+                player.update_players(players_info)
                 player.update()
             instructions = player.get_instructions()
             
@@ -240,7 +254,7 @@ class Server:
         players = self.gameEngine.get_players(binary=True)
         bullets = self.gameEngine.get_bullets(binary=True)
         msg = struct.pack("B", 3) + players + bullets
-        # print(msg)
+
         with self.lock:
             addrs = self.get_menu_players_addrs()
         for addr in addrs:
@@ -251,11 +265,17 @@ class Server:
         walls = self.gameEngine.get_walls(binary=True)
         players = self.gameEngine.get_players(binary=True)
         msg = struct.pack("B", 2) + walls + players
-        print(msg)
         with self.lock:
             addrs = self.get_menu_players_addrs()
         for addr in addrs:
             self.socket.sendto(msg, addr)
+    
+    def update_bot_walls(self):
+        walls = self.gameEngine.get_walls()
+        for player in self.players.values():
+            if player.is_bot():
+                player.update_walls(walls)
+
 
 server = Server(server_ip, int(port))
 server.run()

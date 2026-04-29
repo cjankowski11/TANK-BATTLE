@@ -111,10 +111,13 @@ class GameEngine:
         return self.walls
     
     def get_start_pos(self, screen_w, screen_h):  # TO DO: prevent from spawning in walls
-        
-        x = random.randint(0, screen_w - 50)
-        y = random.randint(0, screen_h - 50)
-        return pygame.Vector2(x, y)
+
+        while True:
+            x = random.randint(0, screen_w - 50)
+            y = random.randint(0, screen_h - 50)
+            if not self.check_starting_collision(x, y):
+                return pygame.Vector2(x, y)
+
     
     def get_bullets(self, binary=False):
         if binary:
@@ -125,6 +128,15 @@ class GameEngine:
             return buffor
         return self.bullets
     
+    def check_starting_collision(self, x, y): #horrible sollution. Only for now
+        tank_rect = pygame.Rect(0, 0, 20, 20)
+        tank_rect.center = (int(x), int(y))
+        for wall in self.walls:
+            if wall.colliderect(tank_rect):
+                return True
+        return False
+
+
     def check_collision(self, tank):          # there is for sure a better way to write it than
         tank_rect = pygame.Rect(0, 0, 20, 20)   # mulitiplicate function for every collisoin
         tank_rect.center = (int(tank.position.x), int(tank.position.y))
@@ -151,4 +163,12 @@ class GameEngine:
             if tank_rect.colliderect(bullet_rect):
                 return True
         return False
+    
+    def get_winner(self):
+        winner = None
+        for player, tank in self.players.items():
+            if tank.is_alive():
+                winner = player
+        return winner
+
 

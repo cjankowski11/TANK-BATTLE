@@ -25,7 +25,6 @@ class TankEngine(Tank):
         bullet = BulletEngine(spawn_pos, self.angle, self.ticks_per_sec)
         self.bullets_left -= 1
         self.shoot_cooldown_frames = self.cooldown_shoot_limit
-        print(self.position)
         return bullet
  
     
