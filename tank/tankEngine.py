@@ -9,9 +9,9 @@ class TankEngine(Tank):
         self.ticks_per_sec = ticks_per_sec
         self.max_bullets = bullets
         self.shoot_cooldown_frames = 0
-        self.reload_frames_limit = 100
+        self.reload_frames_limit = 1 * ticks_per_sec
         self.reload_frames_cooldown = 0
-        self.cooldown_shoot_limit = 30
+        self.cooldown_shoot_limit = 0.5 * ticks_per_sec
 
     def shoot(self):
         rad = math.radians(self.angle)

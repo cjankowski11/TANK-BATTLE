@@ -11,7 +11,7 @@ class GameEngine:
         self.walls = []
         self.screen_width = 800
         self.screen_height = 450
-        self.tank_amunition = 10
+        self.tank_amunition = 8
         with open(game_map, "r") as f:
             for line in f:
                 wall = line.strip().split(",")
@@ -113,8 +113,8 @@ class GameEngine:
     def get_start_pos(self, screen_w, screen_h):  # TO DO: prevent from spawning in walls
 
         while True:
-            x = random.randint(0, screen_w - 50)
-            y = random.randint(0, screen_h - 50)
+            x = random.randint(50, screen_w - 50)
+            y = random.randint(100, screen_h)
             if not self.check_starting_collision(x, y):
                 return pygame.Vector2(x, y)
 
