@@ -1,4 +1,4 @@
-# TANK-GAME
+# TANK-BATTLE
 Multiplayer tank game with both online and local version and possibility of adding bots.
 
 
