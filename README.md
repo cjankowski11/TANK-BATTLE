@@ -1,2 +1,2 @@
-# TANK-GAME
+# TANK-BATTLE
 first idea is a multiplayer game also with the possibility of adding bots
