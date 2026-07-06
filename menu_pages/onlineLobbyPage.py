@@ -8,11 +8,12 @@ import time
 
 class OnlineLobbyPage:
 
-    def __init__(self, info, host="127.0.0.1", port=12345):
+    def __init__(self, info, socket, host="127.0.0.1", port=12345):
         self.info = info
-        self.back_button = Button("BACK", 100, 100, 100, 100, (50, 50, 200), (80, 80, 250), 30)
-        self.players_name_text = [Text("", 300, 150), Text("", 300, 195)
-                                  , Text("", 300, 240), Text("", 300, 295)]
+        self.back_button = Button("BACK", 100, 100, 100, 100, (50, 50, 200),
+                                  (80, 80, 250), 30)
+        self.players_name_text = [Text("", 300, 150), Text("", 300, 195),
+                                  Text("", 300, 240), Text("", 300, 295)]
         for text in self.players_name_text:
             text.change_to_sysfont("arial", 30)
         
@@ -20,9 +21,7 @@ class OnlineLobbyPage:
         self.is_ready = []
         self.host = host
         self.port = port
-        self.socket = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
-        self.socket.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, True)
-        self.socket.settimeout(1)
+        self.socket = socket
         self.bot_text = Text("BOT", 525, 50)
         add_bot = Button("+", 500, 90, 100, 100, (50, 50, 200), (80, 80, 250))
         add_bot.change_to_sysfont("arial", 50)
@@ -39,12 +38,11 @@ class OnlineLobbyPage:
         sub_round.change_to_sysfont("arial", 50)
         self.subtract_round_button = sub_round
 
-        self.ready_button = Button("READY", 50, 340, 300, 100, (50, 50, 200), (80, 80, 250), 50)
-        self.start_button = Button("START", 450, 340, 300, 100, (50, 50, 200), (80, 80, 250), 50)
+        self.ready_button = Button("READY", 50, 340, 300, 100, (50, 50, 200),
+                                   (80, 80, 250), 50)
+        self.start_button = Button("START", 450, 340, 300, 100, (50, 50, 200),
+                                   (80, 80, 250), 50)
 
-        # self.socket.bind((self.host, self.port))
-        # threading.Thread(target=self.recive, daemon=True).start()
-        # threading.Thread(target=self.send_to_server_msg_that_i_exist, daemon=True).start()
         self.ready = False
 
     def start_connection(self):         # should i end threads when i exit from onlinePage?hmm

@@ -1,5 +1,6 @@
 from bullet.bullet import Bullet
 
+BULLET_LONGEVITY = 10
 
 class BulletEngine(Bullet):
     def __init__(self, position, angle, ticks_per_sec):
@@ -7,10 +8,10 @@ class BulletEngine(Bullet):
         self.ticks_per_sec = ticks_per_sec
         self.angle = angle
         self.existence_time = 0
-        self.logevity = 10 * ticks_per_sec
+        self.logevity = BULLET_LONGEVITY * ticks_per_sec
         self.exists = True
 
-    def update_exst_time(self):
+    def update_exist_time(self):
         self.existence_time += 1
         if self.existence_time >= self.logevity:
             self.exists = False

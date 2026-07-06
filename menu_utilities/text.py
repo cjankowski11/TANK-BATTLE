@@ -20,6 +20,6 @@ class Text:
         self.color = new_color
         self.text_surf = self.font.render(self.text, True, new_color)
     
-    def change_to_sysfont(self, font, font_size):
+    def change_to_sysfont(self, font="arial", font_size=30):
         self.font = pygame.font.SysFont(font, font_size)
         self.text_surf = self.font.render(self.text, True, self.color)

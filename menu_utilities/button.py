@@ -26,6 +26,6 @@ class Button:
             return True
         return False
     
-    def change_to_sysfont(self, font_name, font_size):
+    def change_to_sysfont(self, font_name="arial", font_size=30):
         self.font = pygame.font.SysFont(font_name, font_size)
         self._create_text_surface()

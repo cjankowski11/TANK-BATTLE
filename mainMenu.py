@@ -5,8 +5,10 @@ from menu_pages.playPage import PlayPage
 from menu_pages.settingsPage import SettingsPage
 from menu_pages.localLobbyPage import LocalLobbyPage
 from menu_pages.onlineLobbyPage import OnlineLobbyPage
+from menu_pages.getNamePage import GetNamePage
 import os
 from dotenv import load_dotenv
+import socket
 
 class MainMenu:
     def __init__(self):
@@ -20,13 +22,17 @@ class MainMenu:
         load_dotenv()
         server_ip = os.getenv("IP")
         port = os.getenv("PORT")
+        socket_obj = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+        socket_obj.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, True)
+        socket_obj.settimeout(1)
         pygame.init()
         pages = {
             "MENU": MenuPage(),
             "SETTINGS": SettingsPage(),
             "PLAY": PlayPage(self.info),
             "LOCAL_LOBBY": LocalLobbyPage(self.info),
-            "ONLINE_LOBBY": OnlineLobbyPage(self.info, server_ip, int(port))
+            "ONLINE_LOBBY": OnlineLobbyPage(self.info, socket_obj, server_ip, int(port)),
+            "GET_NAME": GetNamePage(self.info, socket_obj)
                  }
         currentpage = pages["MENU"]
         new_page = None

@@ -6,17 +6,13 @@ import math
 
 
 class GameEngine:
-    def __init__(self, players_names, game_map, ticks_per_sec):
+    def __init__(self, players_names, ticks_per_sec):
         self.ticks_per_sec = ticks_per_sec
         self.walls = []
         self.screen_width = 800
         self.screen_height = 450
         self.tank_amunition = 8
-        with open(game_map, "r") as f:
-            for line in f:
-                wall = line.strip().split(",")
-                self.walls.append(pygame.Rect(int(wall[0]), int(wall[1]), int(wall[2]), int(wall[3])))
-                self.players = {}
+        self.players = {}
         for name in players_names:
             start_pos = self.get_start_pos(self.screen_width, self.screen_height)
             self.players[name] = TankEngine(start_pos, random.randint(0, 360), self.tank_amunition, ticks_per_sec)
@@ -80,7 +76,7 @@ class GameEngine:
     def update_bullets(self):
         bullets_to_remove = []
         for bullet in self.bullets:
-            bullet.update_exst_time()
+            bullet.update_exist_time()
             if not bullet.is_existing() or self.check_bullet_walls_collision(bullet):
                 bullets_to_remove.append(bullet)
         for bullet in bullets_to_remove:
@@ -114,7 +110,7 @@ class GameEngine:
 
         while True:
             x = random.randint(50, screen_w - 50)
-            y = random.randint(100, screen_h)
+            y = random.randint(100, screen_h - 100)
             if not self.check_starting_collision(x, y):
                 return pygame.Vector2(x, y)
 
@@ -170,5 +166,15 @@ class GameEngine:
             if tank.is_alive():
                 winner = player
         return winner
+    
+    def change_map(self, map_filename=None):
+        maps = ["maps/map1.txt", "maps/map2.txt", "maps/map3.txt"]
+        if map_filename is None:
+            map_filename = random.choice(maps)
+        with open(map_filename, "r") as f:
+            for line in f:
+                wall = line.strip().split(",")
+                self.walls.append(pygame.Rect(int(wall[0]), int(wall[1]), int(wall[2]), int(wall[3])))
+
 
 

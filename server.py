@@ -21,7 +21,7 @@ class Server:
         self.menu_players = {}
         self.max_players = 4
         self.bots_number = 0
-        self.rounds_number = 5
+        self.rounds_number = 1
         self.socket = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
         self.socket.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, True)
         self.socket.bind((self.host, self.port))
@@ -220,7 +220,8 @@ class Server:
                 names.append(name)
                 player.alive = True
 
-        self.gameEngine = GameEngine(names, "maps/map1.txt", tps)
+        self.gameEngine = GameEngine(names, tps)
+        self.gameEngine.change_map("maps/map3.txt")
                 
     def initialize_players(self):
 
