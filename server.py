@@ -42,8 +42,22 @@ class Server:
                 with self.lock:
                     if addr in self.menu_players:
                         self.menu_players[addr]["time"] = now
+
+                    if msg_type == 0:
+                        name_is_used = False
+                        name_length = struct.unpack("B", data[1:2])[0]
+                        print(name_length)
+                        new_name = struct.unpack(f"{name_length}s", data[2:int(name_length)+2])[0]
+                        new_name = new_name.decode()
+                        for player in self.menu_players.values():
+                            if new_name == player["name"]:
+                                name_is_used = True
+                                self.socket.sendto(struct.pack("B?", 5, True), addr)
+                        if not name_is_used:
+                            self.socket.sendto(struct.pack("B?", 5, False), addr)
+                        print(new_name)
                 
-                    if msg_type == 1:        
+                    elif msg_type == 1:        
                         all_players = self.get_menu_players_number() + self.bots_number
                         addrs = self.get_menu_players_addrs()
                         if all_players < 4 or addr in addrs:

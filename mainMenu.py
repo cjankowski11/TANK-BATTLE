@@ -32,7 +32,7 @@ class MainMenu:
             "PLAY": PlayPage(self.info),
             "LOCAL_LOBBY": LocalLobbyPage(self.info),
             "ONLINE_LOBBY": OnlineLobbyPage(self.info, socket_obj, server_ip, int(port)),
-            "GET_NAME": GetNamePage(self.info, socket_obj)
+            "GET_NAME": GetNamePage(self.info, socket_obj, server_ip, int(port))
                  }
         currentpage = pages["MENU"]
         new_page = None
