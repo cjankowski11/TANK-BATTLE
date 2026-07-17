@@ -7,36 +7,34 @@ class LocalLobbyPage:
 
     def __init__(self, info):
         self.info = info
-        self.back_button = Button("BACK", 20, 100, 100, 100, (50, 50, 200),
-                                  (80, 80, 250), 30)
-        add_player = Button("+", 125, 300, 100, 100, (50, 50, 200), (80, 80, 250))
+        self.back_button = Button("BACK", 20, 100, 100, 100)
+        add_player = Button("+", 125, 300, 100, 100)
         add_player.change_to_sysfont("arial", 50)
         self.add_player_button = add_player
-        sub_player = Button("-", 250, 300, 100, 100, (50, 50, 200), (80, 80, 250))
+        sub_player = Button("-", 250, 300, 100, 100)
         sub_player.change_to_sysfont("arial", 50)
         self.subtract_player_button = sub_player
 
         self.player_text = Text(f"PLAYERS {self.info.number_of_players}", 125, 245)
 
-        add_bot = Button("+", 500, 300, 100, 100, (50, 50, 200), (80, 80, 250))
+        add_bot = Button("+", 500, 300, 100, 100)
         add_bot.change_to_sysfont("arial", 50)
         self.add_bot_button = add_bot
-        sub_bot = Button("-", 625, 300, 100, 100, (50, 50, 200), (80, 80, 250))
+        sub_bot = Button("-", 625, 300, 100, 100)
         sub_bot.change_to_sysfont("arial", 50)
         self.subtract_bot_button = sub_bot
 
         self.rounds_text = Text(f"ROUNDS {self.info.number_of_rounds}", 150, 50)
-        add_round = Button("+", 125, 90, 100, 100, (50, 50, 200), (80, 80, 250))
+        add_round = Button("+", 125, 90, 100, 100)
         add_round.change_to_sysfont("arial", 50)
         self.add_round_button = add_round
-        sub_round = Button("-", 250, 90, 100, 100, (50, 50, 200), (80, 80, 250))
+        sub_round = Button("-", 250, 90, 100, 100)
         sub_round.change_to_sysfont("arial", 50)
         self.subtract_round_button = sub_round
 
         self.bot_text = Text(f"BOTS {self.info.number_of_bots}", 550, 245)
 
-        self.play_buton = Button("PLAY", 400, 100, 300, 100, (50, 50, 200),
-                                 (80, 80, 250), 50)
+        self.play_buton = Button("PLAY", 400, 100, 300, 100, font_size=50)
 
     def draw_page(self, screen):
         self.back_button.draw(screen)

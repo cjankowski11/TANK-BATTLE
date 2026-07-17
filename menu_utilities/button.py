@@ -1,8 +1,13 @@
 import pygame
 
+BUTTON_COLOR = (50, 50, 200)
+BUTTON_HOVER_COLOR = (80, 80, 250)
+TEXT_COLOR = (255, 255, 255)
+
 
 class Button:
-    def __init__(self, text, x, y, width, height, color, hover_color, font_size=30, font_name="ka1.ttf"):
+    def __init__(self, text, x, y, width, height, color=BUTTON_COLOR,
+                 hover_color=BUTTON_HOVER_COLOR, font_size=30, font_name="ka1.ttf"):
         self.rect = pygame.Rect(x, y, width, height)
         self.text = text
         self.color = color
@@ -12,7 +17,7 @@ class Button:
         self._create_text_surface()
 
     def _create_text_surface(self):
-        self.text_surf = self.font.render(self.text, True, (255, 255, 255))
+        self.text_surf = self.font.render(self.text, True, TEXT_COLOR)
         self.text_rect = self.text_surf.get_rect(center=self.rect.center)
 
     def draw(self, screen):
@@ -22,7 +27,8 @@ class Button:
         screen.blit(self.text_surf, self.text_rect)
 
     def is_clicked(self, event):
-        if event.type == pygame.MOUSEBUTTONDOWN and event.button == 1 and self.rect.collidepoint(event.pos):
+        if (event.type == pygame.MOUSEBUTTONDOWN and event.button == 1 and
+            self.rect.collidepoint(event.pos)):
             return True
         return False
     

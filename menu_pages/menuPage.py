@@ -4,12 +4,9 @@ from menu_utilities.button import Button
 class MenuPage:
 
     def __init__(self):
-        self.play_button = Button("PLAY", 225, 50, 350, 100, (50, 50, 200),
-                                  (80, 80, 250), 50)
-        self.settings_button = Button("SETTINGS", 225, 175, 350, 100,
-                                      (50, 50, 200), (80, 80, 250), 50)
-        self.quit_button = Button("QUIT", 225, 300, 350, 100, (50, 50, 200),
-                                  (80, 80, 250), 50)
+        self.play_button = Button("PLAY", 225, 50, 350, 100, font_size=50)
+        self.settings_button = Button("SETTINGS", 225, 175, 350, 100, font_size=50)
+        self.quit_button = Button("QUIT", 225, 300, 350, 100, font_size=50)
     
     def draw_page(self, screen):
         self.play_button.draw(screen)

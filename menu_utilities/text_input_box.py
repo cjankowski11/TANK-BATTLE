@@ -21,7 +21,7 @@ class TextInputBox:
             text="",
             x=self.text_x,
             y=self.text_y,
-            color=(255, 255, 255),
+            color=ACTIVE_COLOR,
             font_name=font_name,
             font_size=font_size
         )
@@ -56,3 +56,6 @@ class TextInputBox:
         self.text_obj.pos = (self.text_x, self.text_y)
         
         self.text_obj.change_to_sysfont(font, font_size)
+
+    def get_text(self):
+        return self.text_obj.text

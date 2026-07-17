@@ -1,8 +1,10 @@
 import pygame
 
+TEXT_COLOR = (255, 255, 255)
+
 
 class Text:
-    def __init__(self, text, x, y, color=(255, 255, 255), font_name="ka1.ttf", font_size=30):
+    def __init__(self, text, x, y, color=TEXT_COLOR, font_name="ka1.ttf", font_size=30):
         self.pos = (x, y)
         self.font = pygame.font.Font(f"graphics/font/{font_name}", font_size)
         self.color = color

@@ -37,8 +37,10 @@ class Server:
                 decoded_name = None
                 ready_status = False
                 if msg_type == 1:
-                    ready_status, name_raw = struct.unpack("?20s", data[1:])
-                    decoded_name = name_raw.decode().strip('\x00')
+                    name_length, ready_status = struct.unpack("B?", data[1:3])
+                    name_raw = struct.unpack(f"{name_length}s", data[3:name_length+3])[0]
+                    decoded_name = name_raw.decode()
+
                 with self.lock:
                     if addr in self.menu_players:
                         self.menu_players[addr]["time"] = now
@@ -217,7 +219,9 @@ class Server:
             rounds = self.rounds_number
         buffor = struct.pack("BBBB", 0, num_players, current_bots, rounds)
         for value in current_players:
-            buffor += struct.pack("?20s", value["ready"], (value["name"]).encode())
+            encoded_name = value["name"].encode()
+            name_length = len(encoded_name)
+            buffor += struct.pack(f"B?{name_length}s", name_length, value["ready"], encoded_name)
         with self.lock:
             addrs = self.get_menu_players_addrs()
 
