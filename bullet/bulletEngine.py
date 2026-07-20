@@ -1,6 +1,6 @@
 from bullet.bullet import Bullet
 
-BULLET_LONGEVITY = 10
+BULLET_LONGEVITY = 5
 
 class BulletEngine(Bullet):
     def __init__(self, position, angle, ticks_per_sec):

@@ -10,6 +10,5 @@ class MenuInfo:
         self.max_rounds = 20
         self.number_of_bots = 0
         self.name = None
-        self.running = True
         self.number_of_rounds = 5
         self.socket = None

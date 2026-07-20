@@ -10,45 +10,35 @@ import os
 from dotenv import load_dotenv
 import socket
 
+WIDTH = 800
+HEIGHT = 450
+
+
 class MainMenu:
     def __init__(self):
-        self.height = 450
-        self.width = 800
         self.running = True
-        self.screen = pygame.display.set_mode((self.width, self.height))
+        self.screen = pygame.display.set_mode((WIDTH, HEIGHT))
         self.info = MenuInfo()
+        self.pages = {}
 
     def run(self):
-        load_dotenv()
-        server_ip = os.getenv("IP")
-        port = os.getenv("PORT")
-        socket_obj = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
-        socket_obj.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, True)
-        socket_obj.settimeout(1)
         pygame.init()
-        pages = {
-            "MENU": MenuPage(),
-            "SETTINGS": SettingsPage(),
-            "PLAY": PlayPage(self.info),
-            "LOCAL_LOBBY": LocalLobbyPage(self.info),
-            "ONLINE_LOBBY": OnlineLobbyPage(self.info, socket_obj, server_ip, int(port)),
-            "GET_NAME": GetNamePage(self.info, socket_obj, server_ip, int(port))
-                 }
-        currentpage = pages["MENU"]
+        self._prepare_pages()
+        currentpage = self.pages["MENU"]
         new_page = None
         while self.running:
             for event in pygame.event.get():
                 if event.type == pygame.QUIT:
+                    self.info.online = None
                     self.running = False
                 new_page = currentpage.is_page_changed(event)
             if new_page == "QUIT":
                 self.running = False
                 break
             if new_page == "ONLINE_LOBBY":
-                pages["ONLINE_LOBBY"].start_connection()
+                self.pages["ONLINE_LOBBY"].start_connection()
             if new_page:
-                currentpage = pages[new_page]
-
+                currentpage = self.pages[new_page]
             if self.info.game_running:
                 self.running = False
                 break
@@ -57,4 +47,18 @@ class MainMenu:
             pygame.display.update()
         return self.info
 
-        
+    def _prepare_pages(self):
+        load_dotenv()
+        server_ip = os.getenv("IP")
+        port = os.getenv("PORT")
+        socket_obj = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+        socket_obj.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, True)
+        socket_obj.settimeout(1)
+        self.pages = {
+            "MENU": MenuPage(),
+            "SETTINGS": SettingsPage(),
+            "PLAY": PlayPage(self.info),
+            "LOCAL_LOBBY": LocalLobbyPage(self.info),
+            "ONLINE_LOBBY": OnlineLobbyPage(self.info, socket_obj, server_ip, int(port)),
+            "GET_NAME": GetNamePage(self.info, socket_obj, server_ip, int(port))
+                 }

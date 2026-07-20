@@ -48,7 +48,6 @@ class Server:
                     if msg_type == 0:
                         name_is_used = False
                         name_length = struct.unpack("B", data[1:2])[0]
-                        print(name_length)
                         new_name = struct.unpack(f"{name_length}s", data[2:int(name_length)+2])[0]
                         new_name = new_name.decode()
                         for player in self.menu_players.values():
@@ -57,7 +56,6 @@ class Server:
                                 self.socket.sendto(struct.pack("B?", 5, True), addr)
                         if not name_is_used:
                             self.socket.sendto(struct.pack("B?", 5, False), addr)
-                        print(new_name)
                 
                     elif msg_type == 1:        
                         all_players = self.get_menu_players_number() + self.bots_number
@@ -75,7 +73,8 @@ class Server:
                         if self.bots_number > 0:
                             self.bots_number -= 1
 
-                    elif msg_type == 4 and not self.start_game:
+                    elif (msg_type == 4 and not self.start_game and
+                          self.bots_number + self.get_menu_players_number() > 1):
                         self.start_game = (bool(self.menu_players) and
                                            all(p["ready"]
                                            for p in self.menu_players.values()))
@@ -239,7 +238,7 @@ class Server:
                 player.alive = True
 
         self.gameEngine = GameEngine(names, tps)
-        self.gameEngine.change_map("maps/map3.txt")
+        self.gameEngine.choose_map("maps/map3.txt")
                 
     def initialize_players(self):
 
@@ -254,13 +253,14 @@ class Server:
         self.gameEngine.update_bullets()
         bullets_info = self.gameEngine.get_bullets()
         players_info = self.gameEngine.get_players()
-        for name, player in self.players.items():
+        for player in self.players.values():
             if player.is_bot():
                 player.update_bullets(bullets_info)
                 player.update_players(players_info)
                 player.update()
-            instructions = player.get_instructions()
-            
+                
+        for name, player in self.players.items():
+            instructions = player.get_instructions()            
             self.gameEngine.update_player(name, instructions["w"], 
                                           instructions["a"],
                                           instructions["s"],

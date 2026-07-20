@@ -83,6 +83,7 @@ class LocalLobbyPage:
             self.info.number_of_rounds -= 1
             self.rounds_text.change_text(f"ROUNDS {self.info.number_of_rounds}")
 
-        if self.play_buton.is_clicked(event):
+        if (self.play_buton.is_clicked(event) and 
+           self.info.number_of_bots + self.info.number_of_players > 1):
             self.info.game_running = True
             return "QUIT"
