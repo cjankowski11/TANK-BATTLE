@@ -45,7 +45,8 @@ class GetNamePage:
     def is_name_taken(self, name):
         name = name.encode()
         name_length = len(name)
-        message = struct.pack(f"BB{name_length}s", nc.VALIDATE_PLAYER_NAME, name_length, name)
+        message = struct.pack(
+            f"BB{name_length}s", nc.VALIDATE_PLAYER_NAME, name_length, name)
         self.socket.sendto(message, (self.host, self.port))
         running = True
         while running:

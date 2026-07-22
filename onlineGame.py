@@ -53,8 +53,8 @@ class OnlineGame:
 
             except socket.timeout:
                 continue
-            except Exception as e:
-                print(e)
+            # except Exception as e:
+            #     print(e)
             # time.sleep(0.01)
     
     def broadcasting(self):
@@ -64,10 +64,10 @@ class OnlineGame:
                 "BBBBBB", nc.PLAYER_INSTRUCTIONS,
                 instructions["w"], instructions["a"], instructions["s"],
                 instructions["d"], instructions["shoot"])
-            try:
-                self.socket.sendto(msg, (self.host, self.port))
-            except Exception as e:
-                print(e)
+            # try:
+            self.socket.sendto(msg, (self.host, self.port))
+            # except Exception as e:
+            #     print(e)
             time.sleep(0.01)
     
     def start_connection(self):
@@ -99,6 +99,7 @@ class OnlineGame:
 
         self.gameView.update_walls(walls)
         self.gameView.initialize_players(players)
+        self.gameView.update_bullets([])
     
     def update_game(self, msg):
         number_of_players = msg[1]
