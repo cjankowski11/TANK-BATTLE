@@ -3,6 +3,7 @@ from menu_utilities.text import Text
 from menu_utilities.text_input_box import TextInputBox
 import struct
 import time
+import network_constants as nc
 
 
 class GetNamePage:
@@ -44,13 +45,13 @@ class GetNamePage:
     def is_name_taken(self, name):
         name = name.encode()
         name_length = len(name)
-        message = struct.pack(f"BB{name_length}s", 0, name_length, name)
+        message = struct.pack(f"BB{name_length}s", nc.VALIDATE_PLAYER_NAME, name_length, name)
         self.socket.sendto(message, (self.host, self.port))
         running = True
         while running:
             msg, _ = self.socket.recvfrom(2048)
             msg_type = int(msg[0])
-            if msg_type == 5:
+            if msg_type == nc.NAME_VALIDATION_RESPONSE:
                 is_taken = msg[1]
                 return is_taken
                     

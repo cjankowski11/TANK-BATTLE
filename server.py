@@ -9,6 +9,7 @@ from player import Player, BotPlayer
 load_dotenv()
 server_ip = os.getenv("IP")
 port = os.getenv("PORT")
+import network_constants as nc
 
 
 class Server:
@@ -27,7 +28,7 @@ class Server:
         self.socket.bind((self.host, self.port))
         self.socket.settimeout(1)
         self.lock = threading.Lock()
-        self.players = {} # zrobic moze klase graczy gdzie beda te akcje i moze ilosc punktow i to czy gracz zyje igig
+        self.players = {}
 
     def handle_data(self, data, addr):
         try:
@@ -44,8 +45,7 @@ class Server:
                 with self.lock:
                     if addr in self.menu_players:
                         self.menu_players[addr]["time"] = now
-
-                    if msg_type == 0:
+                    if msg_type == nc.VALIDATE_PLAYER_NAME:
                         name_is_used = False
                         name_length = struct.unpack("B", data[1:2])[0]
                         new_name = struct.unpack(f"{name_length}s", data[2:int(name_length)+2])[0]
@@ -53,46 +53,38 @@ class Server:
                         for player in self.menu_players.values():
                             if new_name == player["name"]:
                                 name_is_used = True
-                                self.socket.sendto(struct.pack("B?", 5, True), addr)
+                                self.socket.sendto(struct.pack("B?", nc.NAME_VALIDATION_RESPONSE, True), addr)
                         if not name_is_used:
-                            self.socket.sendto(struct.pack("B?", 5, False), addr)
-                
-                    elif msg_type == 1:        
+                            self.socket.sendto(struct.pack("B?", nc.NAME_VALIDATION_RESPONSE, False), addr)
+                    elif (msg_type == nc.PLAYER_NAME_AND_READY_STATUS):        
                         all_players = self.get_menu_players_number() + self.bots_number
                         addrs = self.get_menu_players_addrs()
                         if all_players < 4 or addr in addrs:
                             self.menu_players[addr] = {"name": decoded_name,
                                                        "time": now,
                                                        "ready": ready_status}
-
-                    elif msg_type == 2:
+                    elif msg_type == nc.ADD_BOT:
                         if self.bots_number + self.get_menu_players_number() < 4:
                             self.bots_number += 1
-
-                    elif msg_type == 3:
+                    elif msg_type == nc.REMOVE_BOT:
                         if self.bots_number > 0:
                             self.bots_number -= 1
-
-                    elif (msg_type == 4 and not self.start_game and
+                    elif (msg_type == nc.START_GAME and not self.start_game and
                           self.bots_number + self.get_menu_players_number() > 1):
                         self.start_game = (bool(self.menu_players) and
                                            all(p["ready"]
                                            for p in self.menu_players.values()))
                         self.initialize_players()
-                    elif msg_type == 5:
+                    elif msg_type == nc.ADD_ROUND:
                         if self.rounds_number < 20:
                             self.rounds_number += 1
-                    
-                    elif msg_type == 6:
+                    elif msg_type == nc.REMOVE_ROUND:
                         if self.rounds_number > 1:
                             self.rounds_number -= 1
-                    
-                    elif msg_type == 7:
+                    elif msg_type == nc.PLAYER_INSTRUCTIONS:
                         name = self.get_player_name(addr)
                         w, a, s, d, shoot = struct.unpack("BBBBB", data[1:])
-                        self.players[name].update(w, a, s, d, shoot)
-                        
-                        
+                        self.players[name].update(w, a, s, d, shoot) 
         except Exception as e:
             print(f"error {e}")
 
@@ -141,7 +133,7 @@ class Server:
                     self.start_game = False
                     continue
                 for addr in current_players:      
-                    self.socket.sendto(struct.pack("B", 1), addr)
+                    self.socket.sendto(struct.pack("B", nc.START_GAME), addr)
                 game_initialized = True
                 
                 time.sleep(0.1)
@@ -161,7 +153,7 @@ class Server:
                     
                     if current_round == self.rounds_number:
                         for addr in current_players:
-                            self.socket.sendto(struct.pack("B", 4), addr)
+                            self.socket.sendto(struct.pack("B", nc.END_GAME), addr)
                         self.menu_players = {}
                         self.players = {}
                 self.update_game_logic()  
@@ -216,7 +208,7 @@ class Server:
             num_players = self.get_menu_players_number()
             current_bots = self.bots_number
             rounds = self.rounds_number
-        buffor = struct.pack("BBBB", 0, num_players, current_bots, rounds)
+        buffor = struct.pack("BBBB", nc.ACTIVE_PLAYERS, num_players, current_bots, rounds)
         for value in current_players:
             encoded_name = value["name"].encode()
             name_length = len(encoded_name)
@@ -272,7 +264,7 @@ class Server:
     def broadcast_game_state(self):
         players = self.gameEngine.get_players(binary=True)
         bullets = self.gameEngine.get_bullets(binary=True)
-        msg = struct.pack("B", 3) + players + bullets
+        msg = struct.pack("B", nc.PLAYERS_AND_BULLETS) + players + bullets
 
         with self.lock:
             addrs = self.get_menu_players_addrs()
@@ -283,7 +275,7 @@ class Server:
         # send walls to players
         walls = self.gameEngine.get_walls(binary=True)
         players = self.gameEngine.get_players(binary=True)
-        msg = struct.pack("B", 2) + walls + players
+        msg = struct.pack("B", nc.STARTING_WALLS_AND_PLAYERS) + walls + players
         with self.lock:
             addrs = self.get_menu_players_addrs()
         for addr in addrs:

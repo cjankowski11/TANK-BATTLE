@@ -4,7 +4,7 @@ import socket
 import struct
 import threading
 import time
-import network_constants
+import network_constants as nc
 
 
 class OnlineLobbyPage:
@@ -46,9 +46,6 @@ class OnlineLobbyPage:
         threading.Thread(target=self.recive, daemon=True).start()
         threading.Thread(target=self.send_to_server_msg_that_i_exist, daemon=True).start()
     
-    def end_connection(self):
-        
-
     def draw_page(self, screen):
         self.back_button.draw(screen)
         self.add_bot_button.draw(screen)
@@ -69,26 +66,21 @@ class OnlineLobbyPage:
             return "PLAY"
         if self.add_bot_button.is_clicked(event):
             self.socket.sendto(
-                struct.pack("B", network_constants.SEND_TO_SERVER_ADD_BOT),
-                           (self.host, self.port))
+                struct.pack("B", nc.ADD_BOT), (self.host, self.port))
         if self.subtract_bot_button.is_clicked(event):
             self.socket.sendto(
-                struct.pack("B", network_constants.SEND_TO_SERVER_REMOVE_BOT),
-                           (self.host, self.port))
+                struct.pack("B", nc.REMOVE_BOT), (self.host, self.port))
         if self.ready_button.is_clicked(event):
             self.ready = not self.ready
         if self.start_button.is_clicked(event):
             self.socket.sendto(
-                struct.pack("B", network_constants.SEND_TO_SERVER_START_SIGN),
-                           (self.host, self.port))
-        if self.add_round_button.is_clicked(event):   #zmienic to na serwer
+                struct.pack("B", nc.START_GAME), (self.host, self.port))
+        if self.add_round_button.is_clicked(event):
             self.socket.sendto(
-                struct.pack("B", network_constants.SEND_TO_SERVER_ADD_ROUND),
-                           (self.host, self.port))
+                struct.pack("B", nc.ADD_ROUND), (self.host, self.port))
         if self.subtract_round_button.is_clicked(event):
             self.socket.sendto(
-                struct.pack("B", network_constants.SEND_TO_SERVER_REMOVE_ROUND),
-                           (self.host, self.port))
+                struct.pack("B", nc.REMOVE_ROUND), (self.host, self.port))
 
     def send_to_server_msg_that_i_exist(self):
         while self.info.online and not self.info.game_running:
@@ -97,7 +89,7 @@ class OnlineLobbyPage:
             try:
                 self.socket.sendto(
                     struct.pack(f"BB?{name_length}s",
-                                network_constants.SEND_TO_SERVER_PLAYER_NAME_AND_READY_STATUS,
+                                nc.PLAYER_NAME_AND_READY_STATUS,
                                 name_length, self.ready, name), (self.host, self.port))
             except Exception as e:
                 print(e)
@@ -109,7 +101,7 @@ class OnlineLobbyPage:
                 msg, _ = self.socket.recvfrom(2048)
                 msg_type = int(msg[0])
 
-                if msg_type == network_constants.RECIVE_PLAYERS_FROM_SERVER:
+                if msg_type == nc.ACTIVE_PLAYERS:
                     num_players, num_bots, rounds = struct.unpack("BBB", msg[1:4])
                     msg = msg[4:]
                     self.info.number_of_bots = num_bots
@@ -118,12 +110,9 @@ class OnlineLobbyPage:
                     self._display_updated_players()
                     self.update_rounds()
                     
-                if msg_type == network_constants.RECIVE_GAME_START_SIGN_FROM_SERVER:
+                if msg_type == nc.START_GAME:
                     self.info.socket = self.socket
                     self.info.game_running = True
-                    break
-                
-                if msg_type > network_constants.RECIVE_GAME_START_SIGN_FROM_SERVER:
                     break
 
             except socket.timeout:

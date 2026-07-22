@@ -4,28 +4,24 @@ import struct
 import pygame
 import time
 from gameView import GameView
+from player import Player
+import network_constants as nc
 
 
 class OnlineGame:
-    def __init__(self, bots_number, rounds_number, socket, host="127.0.0.1", port=12345):
+    def __init__(self, socket, host="127.0.0.1", port=12345):
         self.host = host
         self.port = port
-        self.rounds = rounds_number
         self.socket = socket
         self.gameView = None
         self.running = True
-        self.action_list = {"w": False,
-                            "a": False,
-                            "s": False,
-                            "d": False,
-                            "shoot": False}
+        self.player = Player()
 
     def update(self):
         pass
     
     def run(self):
         self.gameView = GameView()
-
         while self.running:
 
             for event in pygame.event.get():
@@ -34,25 +30,20 @@ class OnlineGame:
                     return False
         
             keys = pygame.key.get_pressed()
-            self.action_list["w"] = keys[pygame.K_w]
-            self.action_list["a"] = keys[pygame.K_a]
-            self.action_list["s"] = keys[pygame.K_s]
-            self.action_list["d"] = keys[pygame.K_d]
-            self.action_list["shoot"] = keys[pygame.K_SPACE] 
-            # w = keys[pygame.K_w]
-            # a = keys[pygame.K_a]    cos takiego
-            # s = keys[pygame.K_s]
-            # d = keys[pygame.K_d]
-            # shoot = keys[pygame.K_SPACE]
-            # self.player.update(w, a, s, d, shoot)
+            w = keys[pygame.K_w]
+            a = keys[pygame.K_a]
+            s = keys[pygame.K_s]
+            d = keys[pygame.K_d]
+            shoot = keys[pygame.K_SPACE]
+            self.player.update(w, a, s, d, shoot)
             
             self.gameView.draw_game()
         
     def listener(self):
         actions = {
-            2: self.initialize_map,
-            3: self.update_game,
-            4: self.game_finished
+            nc.STARTING_WALLS_AND_PLAYERS: self.initialize_map,
+            nc.PLAYERS_AND_BULLETS: self.update_game,
+            nc.END_GAME: self.game_finished
         }
         while self.running:
             try:
@@ -68,21 +59,22 @@ class OnlineGame:
     
     def broadcasting(self):
         while self.running:
-            if any(self.action_list):
-                msg = struct.pack("BBBBBB", 7, self.action_list["w"], self.action_list["a"],
-                                self.action_list["s"], self.action_list["d"],
-                                self.action_list["shoot"])
-                try:
-                    self.socket.sendto(msg, (self.host, self.port))
-                except Exception as e:
-                    print(e)
+            instructions = self.player.get_instructions()
+            msg = struct.pack(
+                "BBBBBB", nc.PLAYER_INSTRUCTIONS,
+                instructions["w"], instructions["a"], instructions["s"],
+                instructions["d"], instructions["shoot"])
+            try:
+                self.socket.sendto(msg, (self.host, self.port))
+            except Exception as e:
+                print(e)
             time.sleep(0.01)
     
     def start_connection(self):
         threading.Thread(target=self.listener, daemon=True).start()
         threading.Thread(target=self.broadcasting, daemon=True).start()
 
-    def initialize_map(self, msg):    
+    def initialize_map(self, msg):
         number_of_walls = msg[1]
         offset = 2
         walls = []
@@ -103,7 +95,6 @@ class OnlineGame:
             offset += name_length
             x, y, angle, bullets = struct.unpack("fffB", msg[offset:offset+13])
             offset += 13
-            print(name_length, name, x, y, angle, bullets)
             players[name] = (x, y, angle, bullets)
 
         self.gameView.update_walls(walls)
